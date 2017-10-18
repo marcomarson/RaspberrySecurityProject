@@ -14,14 +14,14 @@ class mudaporta(Thread):
     def __init__(self):
         Thread.__init__(self)
     def run(self):
-        
+
         while run:
             input_state = GPIO.input(35)
             if(input_state == False):
                 if(mudancatexto==True):
                     print("Mudança em andamento")
                     mudancatexto=False
-                
+
             else:
                 mudancatexto=True
                 (error, data) = rdr2.request()
@@ -35,23 +35,23 @@ class mudaporta(Thread):
                     elif(uid == rfid2):
                         print("Acesso permitido - Rogério ( Ap30), RFID com UID: "+str(uid[0])+","+str(uid[1])+","+str(uid[2])+","+str(uid[3]))
                     print ("Sistema Porta")
-                    GPIO.output(33, 1)
-                    time.sleep(3)
-                    GPIO.output(33,0)##acionar circuito relé
+                    GPIO.output(33, 1) ## Acionar circuito relé
+                    time.sleep(2)
+                    GPIO.output(33,0)## Desativar circuito relé
                     dataabertura= time.asctime(time.localtime(time.time()))
                     x=True
                     x1=True
                     while x:
-                            
+
                         input_state = GPIO.input(36)
                         if input_state == False:
                             print("Sensor IR acionado")
                             inicio = timeit.default_timer()
-                                
+
                             while x1:
-                                    
+
                                 fim= timeit.default_timer()
-                                    
+
                                 #print(int(fim-inicio))
                                 input_state = GPIO.input(32)
                                 if input_state == False:
