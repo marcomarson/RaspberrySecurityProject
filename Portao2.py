@@ -12,7 +12,8 @@ import pushbullet
 from Variables import *
 import locale
 locale.setlocale(locale.LC_ALL, 'Portuguese')
-
+input_state = GPIO.input(37)
+input_state2 = GPIO.input(40)
 
 class mudaPortao():
 
@@ -21,11 +22,28 @@ class mudaPortao():
         counter_while=True
         counter_RFID=0
         counter_mudanca=0
-        GPIO.add_event_detect(13, GPIO.RISING, callback=infraRedPortao, bouncetime=300)
-        GPIO.add_event_detect(11, GPIO.FALLING, callback=chaveFimCurso, bouncetime=300)
-        GPIO.add_event_detect(35, GPIO.RISING, callback=botaoMudancaAtiva, bouncetime=300)
-        GPIO.add_event_detect(35, GPIO.FALLING, callback=botaoMudancaDesativa, bouncetime=300)
+        GPIO.add_event_detect(13, GPIO.RISING, callback=infraRedPortao, bouncetime=300) # infravermelho
+        GPIO.add_event_detect(11, GPIO.FALLING, callback=chaveFimCurso, bouncetime=300) #chave fim de curso
+        GPIO.add_event_detect(35, GPIO.RISING, callback=botaoMudancaAtiva, bouncetime=300) # mudanca
+        GPIO.add_event_detect(35, GPIO.FALLING, callback=botaoMudancaDesativa, bouncetime=300) #mudanca
+        GPIO.add_event_detect(37, GPIO.RISING, callback=interFone, bouncetime=300) #Interfone
+        GPIO.add_event_detect(40, GPIO.RISING, callback=interFone, bouncetime=300) #Interfone 2
         #carregar tags RFID do banco
+    def interFone(self):
+        input_state = GPIO.input(36)
+        if input_state == False:
+                print ("Saída pelo interfone")
+        else:
+            print ("Interfone Ligado")
+            print ("Abrindo portão")
+        dataabertura= time.strftime("%d %b %Y %H:%M:%S")
+        inicio = timeit.default_timer()
+        GPIO.output(31, 1) # aciona sistema relé por 1 segundo
+        time.sleep(1)
+        GPIO.output(31,0) # desativa sistema relé por 1 segundo
+
+
+
 
     def infraRedPortao(self):
         if(counter_RFID == 1):
@@ -34,6 +52,9 @@ class mudaPortao():
         else:
             print ("Infravermelho detectado pela chave ou pelo interfone")
             print ("Acionar câmera")
+
+
+        
     def botaoMudancaAtiva(self):
         counter_mudanca=1
     def botaoMudancaDesativa(self):
@@ -55,11 +76,11 @@ class mudaPortao():
         while(counter_RFID==0 and counter_mudanca==0):
             try:
 
-                (error, data) = rdr2.request()
+                (error, data) = rdr.request()
                 if not error:
                     print("\nRfid detectado: " + format(data, "02x"))
 
-                (error, uid) = rdr2.anticoll()
+                (error, uid) = rdr.anticoll()
                 if not error:
                     if( uid == rfid1):
                         print("Acesso permitido - Isabel ( Ap12 ),RFID com UID: "+str(uid[0])+","+str(uid[1])+","+str(uid[2])+","+str(uid[3]))

@@ -21,19 +21,37 @@ class mudaPorta():
         counter_while=True
         counter_RFID=0
         counter_mudanca=0
+        counter_interfone=0
         GPIO.add_event_detect(36, GPIO.RISING, callback=infraRedPortao, bouncetime=300)
         GPIO.add_event_detect(32, GPIO.FALLING, callback=chaveFimCurso, bouncetime=300)
         GPIO.add_event_detect(35, GPIO.RISING, callback=botaoMudancaAtiva, bouncetime=300)
         GPIO.add_event_detect(35, GPIO.FALLING, callback=botaoMudancaDesativa, bouncetime=300)
+        GPIO.add_event_detect(37, GPIO.RISING, callback=interFone, bouncetime=300) #Interfone
+        GPIO.add_event_detect(40, GPIO.RISING, callback=interFone, bouncetime=300) #Interfone 2
         #carregar tags RFID do banco
+
+    def interFone(self):
+        counter_interfone=1
+        print ("Interfone Ligado")
+        print ("Abrindo porta")
+        dataabertura= time.strftime("%d %b %Y %H:%M:%S")
+        inicio = timeit.default_timer()
+        GPIO.output(33, 1) # aciona sistema relé por 1 segundo
+        time.sleep(1)
+        GPIO.output(33,0) # desativa sistema relé por 1 segundo
+
+
 
     def infraRedPortao(self):
         if(counter_RFID == 1):
             print ("Infravermelho detectado após RFID")
             print ("Acionar câmera")
         else:
-            print ("Infravermelho detectado pela chave ou pelo interfone")
-            print ("Acionar câmera")
+            if(counter_interfone ==1):
+                print("Infravermelho acionado após interfone")
+            else:
+                print ("Infravermelho detectado após chave")
+                print ("Acionar câmera")
     def botaoMudancaAtiva(self):
         counter_mudanca=1
     def botaoMudancaDesativa(self):
@@ -67,9 +85,9 @@ class mudaPorta():
                         print("Acesso permitido - Rogério ( Ap30), RFID com UID: "+str(uid[0])+","+str(uid[1])+","+str(uid[2])+","+str(uid[3]))
                     print ("Sistema Porta")
                     counter_RFID=1
-                    GPIO.output(31, 1) # aciona sistema relé por 1 segundo
+                    GPIO.output(33, 1) # aciona sistema relé por 1 segundo
                     time.sleep(1)
-                    GPIO.output(31,0) # desativa sistema relé por 1 segundo
+                    GPIO.output(33,0) # desativa sistema relé por 1 segundo
                     dataabertura= time.strftime("%d %b %Y %H:%M:%S")
                     inicio = timeit.default_timer()
 
