@@ -12,8 +12,6 @@ import pushbullet
 from Variables import *
 import locale
 locale.setlocale(locale.LC_ALL, 'Portuguese')
-input_state = GPIO.input(37)
-input_state2 = GPIO.input(40)
 
 class mudaPortao():
 
@@ -30,12 +28,8 @@ class mudaPortao():
         GPIO.add_event_detect(40, GPIO.RISING, callback=interFone, bouncetime=300) #Interfone 2
         #carregar tags RFID do banco
     def interFone(self):
-        input_state = GPIO.input(36)
-        if input_state == False:
-                print ("Saída pelo interfone")
-        else:
-            print ("Interfone Ligado")
-            print ("Abrindo portão")
+        print ("Interfone Ligado")
+        print ("Abrindo portão")
         dataabertura= time.strftime("%d %b %Y %H:%M:%S")
         inicio = timeit.default_timer()
         GPIO.output(31, 1) # aciona sistema relé por 1 segundo
@@ -54,7 +48,7 @@ class mudaPortao():
             print ("Acionar câmera")
 
 
-        
+
     def botaoMudancaAtiva(self):
         counter_mudanca=1
     def botaoMudancaDesativa(self):
