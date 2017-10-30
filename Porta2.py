@@ -16,7 +16,7 @@ locale.setlocale(locale.LC_ALL, 'Portuguese')
 
 class mudaPorta():
 
-    def __init__(self):
+    def __init__(self): #__init__
         counter_IR = 0
         counter_while=True
         counter_RFID=0
