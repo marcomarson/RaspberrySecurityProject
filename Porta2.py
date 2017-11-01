@@ -11,7 +11,8 @@ from pirc522 import RFID
 import pushbullet
 from Variables import *
 import locale
-locale.setlocale(locale.LC_ALL, 'Portuguese')
+import os
+locale.setlocale(locale.LC_ALL, 'Portuguese') #pt_br.utf-8
 
 
 class mudaPorta():
@@ -22,7 +23,7 @@ class mudaPorta():
         counter_RFID=0
         counter_mudanca=0
         counter_interfone=0
-        GPIO.add_event_detect(36, GPIO.RISING, callback=infraRedPortao, bouncetime=300)
+        GPIO.add_event_detect(36, GPIO.RISING, callback=infraRedPorta, bouncetime=300)
         GPIO.add_event_detect(32, GPIO.FALLING, callback=chaveFimCurso, bouncetime=300)
         GPIO.add_event_detect(35, GPIO.RISING, callback=botaoMudancaAtiva, bouncetime=300)
         GPIO.add_event_detect(35, GPIO.FALLING, callback=botaoMudancaDesativa, bouncetime=300)
@@ -40,18 +41,22 @@ class mudaPorta():
         time.sleep(1)
         GPIO.output(33,0) # desativa sistema relé por 1 segundo
 
+    def Camera(self):
+        os.system('fswebcam -r 320x240 -S 3 --jpeg 50 --save /home/pi/PhotosMAM/%H%M%S.jpg') #editar endereço de onde salvar
 
 
-    def infraRedPortao(self):
+    def infraRedPorta(self):
         if(counter_RFID == 1):
             print ("Infravermelho detectado após RFID")
             print ("Acionar câmera")
+            Camera()
         else:
             if(counter_interfone ==1):
                 print("Infravermelho acionado após interfone")
+                Camera()
             else:
                 print ("Infravermelho detectado após chave")
-                print ("Acionar câmera")
+                Camera()
     def botaoMudancaAtiva(self):
         counter_mudanca=1
     def botaoMudancaDesativa(self):
