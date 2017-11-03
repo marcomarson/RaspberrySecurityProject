@@ -13,100 +13,99 @@ from Variables import *
 import locale
 import os
 locale.setlocale(locale.LC_ALL, 'Portuguese') #pt_br.utf-8
+run_once=1
 
 
-class mudaPorta():
+def initializePorta(): #__init__
+    counter_IR = 0
+    counter_while=True
+    counter_RFID=0
+    counter_mudanca=0
+    counter_interfone=0
+    GPIO.add_event_detect(36, GPIO.RISING, callback=infraRedPortaPorta, bouncetime=300)
+    GPIO.add_event_detect(32, GPIO.FALLING, callback=chaveFimCursoPorta, bouncetime=300)
+    GPIO.add_event_detect(35, GPIO.RISING, callback=botaoMudancaAtiva, bouncetime=300)
+    GPIO.add_event_detect(35, GPIO.FALLING, callback=botaoMudancaDesativa, bouncetime=300)
+    GPIO.add_event_detect(37, GPIO.RISING, callback=interFonePorta, bouncetime=300) #Interfone
+    GPIO.add_event_detect(40, GPIO.RISING, callback=interFonePorta, bouncetime=300) #Interfone 2
+    #carregar tags RFID do banco
 
-    def __init__(self): #__init__
-        counter_IR = 0
-        counter_while=True
-        counter_RFID=0
-        counter_mudanca=0
-        counter_interfone=0
-        GPIO.add_event_detect(36, GPIO.RISING, callback=infraRedPorta, bouncetime=300)
-        GPIO.add_event_detect(32, GPIO.FALLING, callback=chaveFimCurso, bouncetime=300)
-        GPIO.add_event_detect(35, GPIO.RISING, callback=botaoMudancaAtiva, bouncetime=300)
-        GPIO.add_event_detect(35, GPIO.FALLING, callback=botaoMudancaDesativa, bouncetime=300)
-        GPIO.add_event_detect(37, GPIO.RISING, callback=interFone, bouncetime=300) #Interfone
-        GPIO.add_event_detect(40, GPIO.RISING, callback=interFone, bouncetime=300) #Interfone 2
-        #carregar tags RFID do banco
+def interFonePorta():
+    counter_interfone=1
+    print ("Interfone Ligado")
+    print ("Abrindo porta")
+    dataabertura= time.strftime("%d %b %Y %H:%M:%S")
+    inicio = timeit.default_timer()
+    GPIO.output(33, 1) # aciona sistema relé por 1 segundo
+    time.sleep(1)
+    GPIO.output(33,0) # desativa sistema relé por 1 segundo
 
-    def interFone(self):
-        counter_interfone=1
-        print ("Interfone Ligado")
-        print ("Abrindo porta")
-        dataabertura= time.strftime("%d %b %Y %H:%M:%S")
-        inicio = timeit.default_timer()
-        GPIO.output(33, 1) # aciona sistema relé por 1 segundo
-        time.sleep(1)
-        GPIO.output(33,0) # desativa sistema relé por 1 segundo
-
-    def Camera(self):
-        os.system('fswebcam -r 320x240 -S 3 --jpeg 50 --save /home/pi/PhotosMAM/%H%M%S.jpg') #editar endereço de onde salvar
+def CameraPorta():
+    os.system('fswebcam -r 320x240 -S 3 --jpeg 50 --save /home/pi/PhotosMAM/%H%M%S.jpg') #editar endereço de onde salvar
 
 
-    def infraRedPorta(self):
-        if(counter_RFID == 1):
-            print ("Infravermelho detectado após RFID")
-            print ("Acionar câmera")
-            Camera()
+def infraRedPortaPorta():
+    if(counter_RFID == 1):
+        print ("Infravermelho detectado após RFID")
+    else:
+        if(counter_interfone ==1):
+            print("Infravermelho acionado após interfone")
+            CameraPorta()
         else:
-            if(counter_interfone ==1):
-                print("Infravermelho acionado após interfone")
-                Camera()
-            else:
-                print ("Infravermelho detectado após chave")
-                Camera()
-    def botaoMudancaAtiva(self):
-        counter_mudanca=1
-    def botaoMudancaDesativa(self):
-        counter_mudanca=0
+            print ("Infravermelho detectado após chave")
+def botaoMudancaAtivaPorta():
+    counter_mudanca=1
+def botaoMudancaDesativaPorta():
+    counter_mudanca=0
 
-    def chaveFimCurso(self):
-        if(counter_RFID==1):
-            counter_RFID=0
-            datafecha = time.strftime("%d %b %Y %H:%M:%S")
-            fim= timeit.default_timer()
-            #enviabancodedados
-            #funcaopraenviardemadrugada
-            #print("Enviando informações para o banco de dados")
-            #bid=bancodedados.insertporta(str(uid),dataabertura,datafecha, int(fim-inicio))
-            #print(bid)
-        print ("Processo finalizado")
+def chaveFimCursoPorta():
+    if(counter_RFID==1):
+        counter_RFID=0
+        datafecha = time.strftime("%d %b %Y %H:%M:%S")
+        fim= timeit.default_timer()
+        #enviabancodedados
+        #funcaopraenviardemadrugada
+        #print("Enviando informações para o banco de dados")
+        #bid=bancodedados.insertporta(str(uid),dataabertura,datafecha, int(fim-inicio))
+        #print(bid)
+    print ("Processo finalizado")
 
-    def run(self):
-        while(counter_RFID==0 and counter_mudanca==0):
-            try:
-
-                (error, data) = rdr2.request()
-                if not error:
-                    print("\nRfid detectado: " + format(data, "02x"))
-
-                (error, uid) = rdr2.anticoll()
-                if not error:
-                    if( uid == rfid1):
-                        print("Acesso permitido - Isabel ( Ap12 ),RFID com UID: "+str(uid[0])+","+str(uid[1])+","+str(uid[2])+","+str(uid[3]))
-                    elif(uid == rfid2):
-                        print("Acesso permitido - Rogério ( Ap30), RFID com UID: "+str(uid[0])+","+str(uid[1])+","+str(uid[2])+","+str(uid[3]))
-                    print ("Sistema Porta")
-                    counter_RFID=1
-                    GPIO.output(33, 1) # aciona sistema relé por 1 segundo
-                    time.sleep(1)
-                    GPIO.output(33,0) # desativa sistema relé por 1 segundo
-                    dataabertura= time.strftime("%d %b %Y %H:%M:%S")
-                    inicio = timeit.default_timer()
-
-
-            except KeyboardInterrupt:
-                GPIO.cleanup()
+def runPorta():
+    if(run_once==1):
+        initializePorta()
+        run_once=0
+    while(counter_RFID==0 and counter_mudanca==0):
         try:
-            #GPIO.wait_for_edge(13, GPIO.RISING)
-            #print "Infravermelho detectado"
-            #camera action
-            #send email/information about door  . Utilizar site online para enviar email, pois raspberry pi vai travar.
-            #print "Esperando sinal chave fim de curso "
-            #GPIO.wait_for_edge(11, GPIO.RISING)
-            #print("Processo finalizado")
-            run()
+
+            (error, data) = rdr2.request()
+            if not error:
+                print("\nRfid detectado: " + format(data, "02x"))
+
+            (error, uid) = rdr2.anticoll()
+            if not error:
+                if( uid == rfid1):
+                    print("Acesso permitido - Isabel ( Ap12 ),RFID com UID: "+str(uid[0])+","+str(uid[1])+","+str(uid[2])+","+str(uid[3]))
+                elif(uid == rfid2):
+                    print("Acesso permitido - Rogério ( Ap30), RFID com UID: "+str(uid[0])+","+str(uid[1])+","+str(uid[2])+","+str(uid[3]))
+                print ("Sistema Porta")
+                counter_RFID=1
+                GPIO.output(33, 1) # aciona sistema relé por 1 segundo
+                time.sleep(1)
+                GPIO.output(33,0) # desativa sistema relé por 1 segundo
+                dataabertura= time.strftime("%d %b %Y %H:%M:%S")
+                inicio = timeit.default_timer()
+
+
         except KeyboardInterrupt:
             GPIO.cleanup()
+    try:
+        #GPIO.wait_for_edge(13, GPIO.RISING)
+        #print "Infravermelho detectado"
+        #camera action
+        #send email/information about door  . Utilizar site online para enviar email, pois raspberry pi vai travar.
+        #print "Esperando sinal chave fim de curso "
+        #GPIO.wait_for_edge(11, GPIO.RISING)
+        #print("Processo finalizado")
+        runPorta()
+    except KeyboardInterrupt:
+        GPIO.cleanup()
