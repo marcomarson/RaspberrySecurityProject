@@ -91,8 +91,14 @@ def chaveFimCurso():
         #print("Enviando informações para o banco de dados")
         #bid=bancodedados.insertporta(str(uid),dataabertura,datafecha, int(fim-inicio))
         #print(bid)
+    #gravaInformacoesPorta(str(uid),dataabertura,datafecha, int(fim-inicio))
     print ("Processo finalizado")
 
+def gravaInformacoesPortao(uid,dataab,dataf,x):
+    path = 'portalog.txt'
+    txt_porta = open(path,'a+')
+    txt_porta.write("%s %s %s %d" % uid,dataab,dataf,x)
+    #salvar imagens
 def run():
     if(run_once_portao==1):
         initialize()

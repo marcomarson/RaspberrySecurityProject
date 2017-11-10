@@ -22,10 +22,10 @@ def initializePorta(): #__init__
     counter_RFID=0
     counter_mudanca=0
     counter_interfone=0
-    GPIO.add_event_detect(36, GPIO.RISING, callback=infraRedPortaPorta, bouncetime=300)
-    GPIO.add_event_detect(32, GPIO.FALLING, callback=chaveFimCursoPorta, bouncetime=300)
-    GPIO.add_event_detect(35, GPIO.RISING, callback=botaoMudancaAtiva, bouncetime=300)
-    GPIO.add_event_detect(35, GPIO.FALLING, callback=botaoMudancaDesativa, bouncetime=300)
+    GPIO.add_event_detect(36, GPIO.RISING, callback=infraRedPortaPorta, bouncetime=300) # Botão Infravermelho porta
+    GPIO.add_event_detect(32, GPIO.FALLING, callback=chaveFimCursoPorta, bouncetime=300) # Botão Chave fim de curso porta
+    GPIO.add_event_detect(35, GPIO.RISING, callback=botaoMudancaAtiva, bouncetime=300) # Botão Mudança
+    GPIO.add_event_detect(35, GPIO.FALLING, callback=botaoMudancaDesativa, bouncetime=300) #Botão Mudança
     GPIO.add_event_detect(37, GPIO.RISING, callback=interFonePorta, bouncetime=300) #Interfone
     GPIO.add_event_detect(40, GPIO.RISING, callback=interFonePorta, bouncetime=300) #Interfone 2
     #carregar tags RFID do banco
@@ -68,7 +68,14 @@ def chaveFimCursoPorta():
         #print("Enviando informações para o banco de dados")
         #bid=bancodedados.insertporta(str(uid),dataabertura,datafecha, int(fim-inicio))
         #print(bid)
+    #gravaInformacoesPorta(str(uid),dataabertura,datafecha, int(fim-inicio))
     print ("Processo finalizado")
+
+def gravaInformacoesPorta(uid,dataab,dataf,x):
+    path = 'portalog.txt'
+    txt_porta = open(path,'a+')
+    txt_porta.write("%s %s %s %d" % uid,dataab,dataf,x)
+    #salvar imagens
 
 def runPorta():
     if(run_once==1):
