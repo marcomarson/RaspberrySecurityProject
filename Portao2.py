@@ -12,25 +12,24 @@ import pushbullet
 from Variables import *
 import locale
 from Camera import Camera
+contapessoas=0
+counter_IR = 0
+counter_while=True
+counter_RFID=0
+counter_mudanca=0
 
 def initialize():
     locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
     GPIO.setmode(GPIO.BOARD)
-    GPIO.setwarnings(False)
-    rdr = RFID()
-    util1 = rdr.util()
-    util1.debug = True
-    counter_IR = 0
-    counter_while=True
-    counter_RFID=0
-    counter_mudanca=0
-    GPIO.add_event_detect(13, GPIO.RISING, callback=infraRedPortao, bouncetime=300) # infravermelho
-    #GPIO.add_event_detect(11, GPIO.FALLING, callback=chaveFimCurso, bouncetime=300) #chave fim de curso
+    global counter_IR, counter_RFID, counter_while, counter_mudanca, counter_interfone, contapessoas
+    GPIO.add_event_detect(13, GPIO.BOTH, callback=infraRedPortao, bouncetime=300) # infravermelho
+    GPIO.add_event_detect(11, GPIO.FALLING, callback=chaveFimCurso, bouncetime=300) #chave fim de curso
     GPIO.add_event_detect(35, GPIO.BOTH, callback=botaoMudanca, bouncetime=300) # mudanca
     GPIO.add_event_detect(37, GPIO.RISING, callback=interFone, bouncetime=300) #Interfone
     GPIO.add_event_detect(40, GPIO.RISING, callback=interFone, bouncetime=300) #Interfone 2
     #carregar tags RFID do banco
-def interFone():
+def interFone(channel):
+    global counter_IR, counter_RFID, counter_while, counter_mudanca, counter_interfone, contapessoas
     print ("Interfone Ligado")
     print ("Abrindo portão")
     dataabertura= time.strftime("%d %b %Y %H:%M:%S")
@@ -53,22 +52,11 @@ def CameraPhoto(contafoto):
         camera.fecha()
 
 
-def infraRedPortao():
-    if(counter_RFID == 1):
-        print ("Infravermelho detectado após RFID")
-        print ("Acionar câmera")
-        contafoto=0
-        input_state = GPIO.input(11)
-        while(input_state == True):
-            CameraPhoto(contafoto)
-            contafoto=contafoto+1
-        chaveFimCurso()
-    else:
-        input_state = GPIO.input(32)
-        if(input_state == False):
-            print ("Infravermelho detectado pela chave ou pelo interfone - Saindo")
-        else:
-            print ("Infravermelho detectado pelo interfone - Entrando")
+def infraRedPortao(channel):
+    global counter_IR, counter_RFID, counter_while, counter_mudanca, counter_interfone, contapessoas
+    if(contapessoas=0):
+        if(counter_RFID == 1):
+            print ("Infravermelho detectado após RFID")
             print ("Acionar câmera")
             contafoto=0
             input_state = GPIO.input(11)
@@ -76,28 +64,48 @@ def infraRedPortao():
                 CameraPhoto(contafoto)
                 contafoto=contafoto+1
             chaveFimCurso()
+        else:
+            input_state = GPIO.input(32)
+            if(input_state == False):
+                print ("Infravermelho detectado pela chave ou pelo interfone - Saindo")
+            else:
+                print ("Infravermelho detectado pelo interfone - Entrando")
+                print ("Acionar câmera")
+                contafoto=0
+                input_state = GPIO.input(11)
+                while(input_state == True):
+                    CameraPhoto(contafoto)
+                    contafoto=contafoto+1
+                chaveFimCurso()
 
 
 
-def botaoMudanca():
+def botaoMudanca(channel):
+    global counter_IR, counter_RFID, counter_while, counter_mudanca, counter_interfone, contapessoas
     input_state = GPIO.input(35)
     if(input_state == False):
         counter_mudanca=1
     else:
         counter_mudanca=0
 
-def chaveFimCurso():
-    if(counter_RFID==1):
-        counter_RFID=0
-        datafecha = time.strftime("%d %b %Y %H:%M:%S")
-        fim= timeit.default_timer()
-        #enviabancodedados
-        #funcaopraenviardemadrugada
-        #print("Enviando informações para o banco de dados")
-        #bid=bancodedados.insertporta(str(uid),dataabertura,datafecha, int(fim-inicio))
-        #print(bid)
-    #gravaInformacoesPorta(str(uid),dataabertura,datafecha, int(fim-inicio))
-    print ("Processo finalizado")
+def chaveFimCurso(channel):
+    global counter_IR, counter_RFID, counter_while, counter_mudanca, counter_interfone, contapessoas
+    input_state = GPIO.input(11)
+    if(input_state == False):
+        contapessoas=0
+        if(counter_RFID==1):
+            counter_RFID=0
+            datafecha = time.strftime("%d %b %Y %H:%M:%S")
+            fim= timeit.default_timer()
+            #enviabancodedados
+            #funcaopraenviardemadrugada
+            #print("Enviando informações para o banco de dados")
+            #bid=bancodedados.insertporta(str(uid),dataabertura,datafecha, int(fim-inicio))
+            #print(bid)
+        #gravaInformacoesPorta(str(uid),dataabertura,datafecha, int(fim-inicio))
+        print ("Processo finalizado")
+    else:
+        contapessoas=1
 
 def gravaInformacoesPortao(uid,dataab,dataf,x):
     path = 'portalog.txt'
@@ -105,6 +113,7 @@ def gravaInformacoesPortao(uid,dataab,dataf,x):
     txt_porta.write("%s %s %s %d" % uid,dataab,dataf,x)
     #salvar imagens
 def run(run_once_portao):
+    global counter_IR, counter_RFID, counter_while, counter_mudanca, counter_interfone, contapessoas
     if(run_once_portao==1):
         initialize()
         run_once_portao=0

@@ -12,16 +12,16 @@ import pushbullet
 from Variables import *
 import locale
 import os
-
+contapessoas=0
+counter_IR = 0
+counter_while=True
+counter_RFID=0
+counter_mudanca=0
+counter_interfone=0
 
 def initializePorta(): #__init__
     locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8') #pt_br.utf-8
-    global contapessoas=0
-    global counter_IR = 0
-    global counter_while=True
-    global counter_RFID=0
-    global counter_mudanca=0
-    global counter_interfone=0
+    global contapessoas, counter_IR, counter_while, counter_RFID, counter_mudanca, counter_interfone
     GPIO.add_event_detect(36, GPIO.RISING, callback=infraRedPortaPorta, bouncetime=300) # Botão Infravermelho porta
     GPIO.add_event_detect(32, GPIO.BOTH, callback=chaveFimCursoPorta, bouncetime=300) # Botão Chave fim de curso porta
     GPIO.add_event_detect(35, GPIO.BOTH, callback=botaoMudancaPorta, bouncetime=300) # Botão Mudança
@@ -29,7 +29,8 @@ def initializePorta(): #__init__
     GPIO.add_event_detect(40, GPIO.RISING, callback=interFonePorta, bouncetime=300) #Interfone 2
     #carregar tags RFID do banco
 
-def interFonePorta():
+def interFonePorta(channel):
+    global contapessoas, counter_IR, counter_while, counter_RFID, counter_mudanca, counter_interfone
     counter_interfone=1
     print ("Interfone Ligado")
     print ("Abrindo porta")
@@ -43,7 +44,8 @@ def CameraPorta():
     os.system('fswebcam -r 320x240 -S 3 --jpeg 50 --save /home/pi/PhotosMAM/%H%M%S.jpg') #editar endereço de onde salvar e salvar com ID da pessoa
 
 
-def infraRedPortaPorta():
+def infraRedPortaPorta(channel):
+    global contapessoas, counter_IR, counter_while, counter_RFID, counter_mudanca, counter_interfone
     if(contapessoas=0):
         if(counter_RFID == 1):
             print ("Infravermelho detectado após RFID")
@@ -53,14 +55,16 @@ def infraRedPortaPorta():
                 CameraPorta()
             else:
                 print ("Infravermelho detectado após chave")
-def botaoMudancaPorta():
+def botaoMudancaPorta(channel):
+    global contapessoas, counter_IR, counter_while, counter_RFID, counter_mudanca, counter_interfone
     input_state = GPIO.input(35)
     if(input_state == False):
         counter_mudanca=1
     else:
         counter_mudanca=0
 
-def chaveFimCursoPorta():
+def chaveFimCursoPorta(channel):
+    global contapessoas, counter_IR, counter_while, counter_RFID, counter_mudanca, counter_interfone
     input_state = GPIO.input(32)
     if(input_state == False):
         contapessoas=0
@@ -86,6 +90,7 @@ def gravaInformacoesPorta(uid,dataab,dataf,x):
     #salvar imagens
 
 def runPorta(run_once):
+    global contapessoas, counter_IR, counter_while, counter_RFID, counter_mudanca, counter_interfone
     if(run_once==1):
         initializePorta()
         run_once=0
