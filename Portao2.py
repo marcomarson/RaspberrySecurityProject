@@ -12,10 +12,14 @@ import pushbullet
 from Variables import *
 import locale
 from Camera import Camera
-locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
-run_once_portao=1
 
 def initialize():
+    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+    GPIO.setmode(GPIO.BOARD)
+    GPIO.setwarnings(False)
+    rdr = RFID()
+    util1 = rdr.util()
+    util1.debug = True
     counter_IR = 0
     counter_while=True
     counter_RFID=0
@@ -99,7 +103,7 @@ def gravaInformacoesPortao(uid,dataab,dataf,x):
     txt_porta = open(path,'a+')
     txt_porta.write("%s %s %s %d" % uid,dataab,dataf,x)
     #salvar imagens
-def run():
+def run(run_once_portao):
     if(run_once_portao==1):
         initialize()
         run_once_portao=0

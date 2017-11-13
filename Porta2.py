@@ -12,11 +12,10 @@ import pushbullet
 from Variables import *
 import locale
 import os
-locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8') #pt_br.utf-8
-run_once=1
 
 
 def initializePorta(): #__init__
+    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8') #pt_br.utf-8
     counter_IR = 0
     counter_while=True
     counter_RFID=0
@@ -41,7 +40,7 @@ def interFonePorta():
     GPIO.output(33,0) # desativa sistema relé por 1 segundo
 
 def CameraPorta():
-    os.system('fswebcam -r 320x240 -S 3 --jpeg 50 --save /home/pi/PhotosMAM/%H%M%S.jpg') #editar endereço de onde salvar
+    os.system('fswebcam -r 320x240 -S 3 --jpeg 50 --save /home/pi/PhotosMAM/%H%M%S.jpg') #editar endereço de onde salvar e salvar com ID da pessoa
 
 
 def infraRedPortaPorta():
@@ -77,13 +76,13 @@ def gravaInformacoesPorta(uid,dataab,dataf,x):
     txt_porta.write("%s %s %s %d" % uid,dataab,dataf,x)
     #salvar imagens
 
-def runPorta():
+def runPorta(run_once):
     if(run_once==1):
         initializePorta()
         run_once=0
     while(counter_RFID==0 and counter_mudanca==0):
         try:
-
+            rdr2.wait_for_tag()
             (error, data) = rdr2.request()
             if not error:
                 print("\nRfid detectado: " + format(data, "02x"))
