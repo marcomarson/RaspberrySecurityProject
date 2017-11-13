@@ -12,7 +12,7 @@ import pushbullet
 from Variables import *
 import locale
 from Camera import Camera
-locale.setlocale(locale.LC_ALL, 'Portuguese')
+locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 run_once_portao=1
 
 def initialize():

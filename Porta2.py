@@ -12,7 +12,7 @@ import pushbullet
 from Variables import *
 import locale
 import os
-locale.setlocale(locale.LC_ALL, 'Portuguese') #pt_br.utf-8
+locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8') #pt_br.utf-8
 run_once=1
 
 
