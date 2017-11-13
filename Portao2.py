@@ -26,8 +26,7 @@ def initialize():
     counter_mudanca=0
     GPIO.add_event_detect(13, GPIO.RISING, callback=infraRedPortao, bouncetime=300) # infravermelho
     #GPIO.add_event_detect(11, GPIO.FALLING, callback=chaveFimCurso, bouncetime=300) #chave fim de curso
-    GPIO.add_event_detect(35, GPIO.RISING, callback=botaoMudancaAtiva, bouncetime=300) # mudanca
-    GPIO.add_event_detect(35, GPIO.FALLING, callback=botaoMudancaDesativa, bouncetime=300) #mudanca
+    GPIO.add_event_detect(35, GPIO.BOTH, callback=botaoMudanca, bouncetime=300) # mudanca
     GPIO.add_event_detect(37, GPIO.RISING, callback=interFone, bouncetime=300) #Interfone
     GPIO.add_event_detect(40, GPIO.RISING, callback=interFone, bouncetime=300) #Interfone 2
     #carregar tags RFID do banco
@@ -80,10 +79,12 @@ def infraRedPortao():
 
 
 
-def botaoMudancaAtiva():
-    counter_mudanca=1
-def botaoMudancaDesativa():
-    counter_mudanca=0
+def botaoMudanca():
+    input_state = GPIO.input(35)
+    if(input_state == False):
+        counter_mudanca=1
+    else:
+        counter_mudanca=0
 
 def chaveFimCurso():
     if(counter_RFID==1):

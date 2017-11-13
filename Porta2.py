@@ -16,15 +16,15 @@ import os
 
 def initializePorta(): #__init__
     locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8') #pt_br.utf-8
-    counter_IR = 0
-    counter_while=True
-    counter_RFID=0
-    counter_mudanca=0
-    counter_interfone=0
+    global contapessoas=0
+    global counter_IR = 0
+    global counter_while=True
+    global counter_RFID=0
+    global counter_mudanca=0
+    global counter_interfone=0
     GPIO.add_event_detect(36, GPIO.RISING, callback=infraRedPortaPorta, bouncetime=300) # Botão Infravermelho porta
-    GPIO.add_event_detect(32, GPIO.FALLING, callback=chaveFimCursoPorta, bouncetime=300) # Botão Chave fim de curso porta
-    GPIO.add_event_detect(35, GPIO.RISING, callback=botaoMudancaAtiva, bouncetime=300) # Botão Mudança
-    GPIO.add_event_detect(35, GPIO.FALLING, callback=botaoMudancaDesativa, bouncetime=300) #Botão Mudança
+    GPIO.add_event_detect(32, GPIO.BOTH, callback=chaveFimCursoPorta, bouncetime=300) # Botão Chave fim de curso porta
+    GPIO.add_event_detect(35, GPIO.BOTH, callback=botaoMudancaPorta, bouncetime=300) # Botão Mudança
     GPIO.add_event_detect(37, GPIO.RISING, callback=interFonePorta, bouncetime=300) #Interfone
     GPIO.add_event_detect(40, GPIO.RISING, callback=interFonePorta, bouncetime=300) #Interfone 2
     #carregar tags RFID do banco
@@ -44,31 +44,40 @@ def CameraPorta():
 
 
 def infraRedPortaPorta():
-    if(counter_RFID == 1):
-        print ("Infravermelho detectado após RFID")
-    else:
-        if(counter_interfone ==1):
-            print("Infravermelho acionado após interfone")
-            CameraPorta()
+    if(contapessoas=0):
+        if(counter_RFID == 1):
+            print ("Infravermelho detectado após RFID")
         else:
-            print ("Infravermelho detectado após chave")
-def botaoMudancaAtivaPorta():
-    counter_mudanca=1
-def botaoMudancaDesativaPorta():
-    counter_mudanca=0
+            if(counter_interfone ==1):
+                print("Infravermelho acionado após interfone")
+                CameraPorta()
+            else:
+                print ("Infravermelho detectado após chave")
+def botaoMudancaPorta():
+    input_state = GPIO.input(35)
+    if(input_state == False):
+        counter_mudanca=1
+    else:
+        counter_mudanca=0
 
 def chaveFimCursoPorta():
-    if(counter_RFID==1):
-        counter_RFID=0
-        datafecha = time.strftime("%d %b %Y %H:%M:%S")
-        fim= timeit.default_timer()
-        #enviabancodedados
-        #funcaopraenviardemadrugada
-        #print("Enviando informações para o banco de dados")
-        #bid=bancodedados.insertporta(str(uid),dataabertura,datafecha, int(fim-inicio))
-        #print(bid)
-    #gravaInformacoesPorta(str(uid),dataabertura,datafecha, int(fim-inicio))
-    print ("Processo finalizado")
+    input_state = GPIO.input(32)
+    if(input_state == False):
+        contapessoas=0
+        if(counter_RFID==1):
+            counter_RFID=0
+            datafecha = time.strftime("%d %b %Y %H:%M:%S")
+            fim= timeit.default_timer()
+            #enviabancodedados
+            #funcaopraenviardemadrugada
+            #print("Enviando informações para o banco de dados")
+            #bid=bancodedados.insertporta(str(uid),dataabertura,datafecha, int(fim-inicio))
+            #print(bid)
+        #gravaInformacoesPorta(str(uid),dataabertura,datafecha, int(fim-inicio))
+        print ("Processo finalizado")
+    else:
+        contapessoas=1
+
 
 def gravaInformacoesPorta(uid,dataab,dataf,x):
     path = 'portalog.txt'

@@ -13,9 +13,10 @@ from multiprocessing import Process
 if __name__ == '__main__':
 
     print("Sistema Iniciando")
-    p1 = Process(target=runPorta())
+    run=1
+    p1 = Process(target=runPorta(run))
     p1.start()
-    p2 = Process(target=run())
-    p2.start()
+    #p2 = Process(target=run())
+    #p2.start()
     p1.join()
-    p2.join()
+    #p2.join()
