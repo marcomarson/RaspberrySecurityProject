@@ -18,6 +18,8 @@ counter_while=True
 counter_RFID=0
 counter_mudanca=0
 counter_interfone=0
+dataabertura=0
+inicio=0
 
 def initializePorta(): #__init__
     locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8') #pt_br.utf-8
@@ -30,7 +32,7 @@ def initializePorta(): #__init__
     #carregar tags RFID do banco
 
 def interFonePorta(channel):
-    global contapessoas, counter_IR, counter_while, counter_RFID, counter_mudanca, counter_interfone
+    global dataabertura,inicio,contapessoas, counter_IR, counter_while, counter_RFID, counter_mudanca, counter_interfone
     counter_interfone=1
     print ("Interfone Ligado")
     print ("Abrindo porta")
@@ -45,8 +47,8 @@ def CameraPorta():
 
 
 def infraRedPortaPorta(channel):
-    global contapessoas, counter_IR, counter_while, counter_RFID, counter_mudanca, counter_interfone
-    if(contapessoas=0):
+    global dataabertura,inicio,contapessoas, counter_IR, counter_while, counter_RFID, counter_mudanca, counter_interfone
+    if(contapessoas==0):
         if(counter_RFID == 1):
             print ("Infravermelho detectado após RFID")
         else:
@@ -55,6 +57,7 @@ def infraRedPortaPorta(channel):
                 CameraPorta()
             else:
                 print ("Infravermelho detectado após chave")
+
 def botaoMudancaPorta(channel):
     global contapessoas, counter_IR, counter_while, counter_RFID, counter_mudanca, counter_interfone
     input_state = GPIO.input(35)
@@ -64,7 +67,7 @@ def botaoMudancaPorta(channel):
         counter_mudanca=0
 
 def chaveFimCursoPorta(channel):
-    global contapessoas, counter_IR, counter_while, counter_RFID, counter_mudanca, counter_interfone
+    global dataabertura,inicio,contapessoas, counter_IR, counter_while, counter_RFID, counter_mudanca, counter_interfone
     input_state = GPIO.input(32)
     if(input_state == False):
         contapessoas=0
@@ -77,7 +80,7 @@ def chaveFimCursoPorta(channel):
             #print("Enviando informações para o banco de dados")
             #bid=bancodedados.insertporta(str(uid),dataabertura,datafecha, int(fim-inicio))
             #print(bid)
-        #gravaInformacoesPorta(str(uid),dataabertura,datafecha, int(fim-inicio))
+            gravaInformacoesPorta(str(uid),dataabertura,datafecha, int(fim-inicio))
         print ("Processo finalizado")
     else:
         contapessoas=1
@@ -86,46 +89,42 @@ def chaveFimCursoPorta(channel):
 def gravaInformacoesPorta(uid,dataab,dataf,x):
     path = 'portalog.txt'
     txt_porta = open(path,'a+')
-    txt_porta.write("%s %s %s %d" % uid,dataab,dataf,x)
+    instr = "'{0}', '{1}', '{2}', '{3}'".format(uid, dataab, dataf,x)
+    txt_porta.write(instr)
+
     #salvar imagens
 
 def runPorta(run_once):
-    global contapessoas, counter_IR, counter_while, counter_RFID, counter_mudanca, counter_interfone
+    global dataabertura, inicio,contapessoas, counter_IR, counter_while, counter_RFID, counter_mudanca, counter_interfone
     if(run_once==1):
         initializePorta()
         run_once=0
-    while(counter_RFID==0 and counter_mudanca==0):
+    while(True):
+        while(counter_RFID==0 and counter_mudanca==0):
+            try:
+                rdr2.wait_for_tag()
+                (error, data) = rdr2.request()
+                if not error:
+                    print("\nRfid detectado: " + format(data, "02x"))
+
+                (error, uid) = rdr2.anticoll()
+                if not error:
+                    if( uid == rfid1):
+                        print("Acesso permitido - Isabel ( Ap12 ),RFID com UID: "+str(uid[0])+","+str(uid[1])+","+str(uid[2])+","+str(uid[3]))
+                    elif(uid == rfid2):
+                        print("Acesso permitido - Rogério ( Ap30), RFID com UID: "+str(uid[0])+","+str(uid[1])+","+str(uid[2])+","+str(uid[3]))
+                    print ("Sistema Porta")
+                    counter_RFID=1
+                    GPIO.output(33, 1) # aciona sistema relé por 1 segundo
+                    time.sleep(1)
+                    GPIO.output(33,0) # desativa sistema relé por 1 segundo
+                    dataabertura= time.strftime("%d %b %Y %H:%M:%S")
+                    inicio = timeit.default_timer()
+
+
+            except KeyboardInterrupt:
+                GPIO.cleanup()
         try:
-            rdr2.wait_for_tag()
-            (error, data) = rdr2.request()
-            if not error:
-                print("\nRfid detectado: " + format(data, "02x"))
-
-            (error, uid) = rdr2.anticoll()
-            if not error:
-                if( uid == rfid1):
-                    print("Acesso permitido - Isabel ( Ap12 ),RFID com UID: "+str(uid[0])+","+str(uid[1])+","+str(uid[2])+","+str(uid[3]))
-                elif(uid == rfid2):
-                    print("Acesso permitido - Rogério ( Ap30), RFID com UID: "+str(uid[0])+","+str(uid[1])+","+str(uid[2])+","+str(uid[3]))
-                print ("Sistema Porta")
-                counter_RFID=1
-                GPIO.output(33, 1) # aciona sistema relé por 1 segundo
-                time.sleep(1)
-                GPIO.output(33,0) # desativa sistema relé por 1 segundo
-                dataabertura= time.strftime("%d %b %Y %H:%M:%S")
-                inicio = timeit.default_timer()
-
-
+            continue
         except KeyboardInterrupt:
             GPIO.cleanup()
-    try:
-        #GPIO.wait_for_edge(13, GPIO.RISING)
-        #print "Infravermelho detectado"
-        #camera action
-        #send email/information about door  . Utilizar site online para enviar email, pois raspberry pi vai travar.
-        #print "Esperando sinal chave fim de curso "
-        #GPIO.wait_for_edge(11, GPIO.RISING)
-        #print("Processo finalizado")
-        runPorta()
-    except KeyboardInterrupt:
-        GPIO.cleanup()

@@ -54,7 +54,7 @@ def CameraPhoto(contafoto):
 
 def infraRedPortao(channel):
     global counter_IR, counter_RFID, counter_while, counter_mudanca, counter_interfone, contapessoas
-    if(contapessoas=0):
+    if(contapessoas==0):
         if(counter_RFID == 1):
             print ("Infravermelho detectado após RFID")
             print ("Acionar câmera")
