@@ -89,7 +89,7 @@ def chaveFimCursoPorta(channel):
 def gravaInformacoesPorta(uid,dataab,dataf,x):
     path = 'portalog.txt'
     txt_porta = open(path,'a+')
-    instr = "'{0}', '{1}', '{2}', '{3}'".format(uid, dataab, dataf,x)
+    instr = "'{0}', '{1}', '{2}', '{3}'\n".format(uid, dataab, dataf,x)
     txt_porta.write(instr)
 
     #salvar imagens
