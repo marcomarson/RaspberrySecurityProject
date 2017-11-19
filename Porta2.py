@@ -20,6 +20,7 @@ counter_mudanca=0
 counter_interfone=0
 dataabertura=0
 inicio=0
+ap=0
 
 def initializePorta(): #__init__
     locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8') #pt_br.utf-8
@@ -32,7 +33,7 @@ def initializePorta(): #__init__
     #carregar tags RFID do banco
 
 def interFonePorta(channel):
-    global dataabertura,inicio,contapessoas, counter_IR, counter_while, counter_RFID, counter_mudanca, counter_interfone
+    global ap,dataabertura,inicio,contapessoas, counter_IR, counter_while, counter_RFID, counter_mudanca, counter_interfone
     counter_interfone=1
     print ("Interfone Ligado")
     print ("Abrindo porta")
@@ -41,61 +42,81 @@ def interFonePorta(channel):
     GPIO.output(33, 1) # aciona sistema relé por 1 segundo
     time.sleep(1)
     GPIO.output(33,0) # desativa sistema relé por 1 segundo
+    if(channel==37):
+        ap=1
+    elif(channel==40):
+        ap=2
+    #db=BancoMongoDB()
+    #users =db.users
+    #login_user = users.find_one({'a' : request.form['username']})
+    #if login_user:
 
-def CameraPorta():
-    os.system('fswebcam -r 320x240 -S 3 --jpeg 50 --save /home/pi/PhotosMAM/%H%M%S.jpg') #editar endereço de onde salvar e salvar com ID da pessoa
+def CameraPorta(ap):
+    os.system('fswebcam -r 320x240 -S 3 --jpeg 50 --no-timestamp --save /home/pi/PhotosMAM/'+ap+'-%d_%m_%y-%H%M.jpg')
 
 
 def infraRedPortaPorta(channel):
-    global dataabertura,inicio,contapessoas, counter_IR, counter_while, counter_RFID, counter_mudanca, counter_interfone
+    global ap,dataabertura,inicio,contapessoas, counter_IR, counter_while, counter_RFID, counter_mudanca, counter_interfone
     if(contapessoas==0):
         if(counter_RFID == 1):
             print ("Infravermelho detectado após RFID")
         else:
             if(counter_interfone ==1):
                 print("Infravermelho acionado após interfone")
-                CameraPorta()
+                CameraPorta(ap) # change version
             else:
                 print ("Infravermelho detectado após chave")
+                CameraPorta(ap)
 
 def botaoMudancaPorta(channel):
     global contapessoas, counter_IR, counter_while, counter_RFID, counter_mudanca, counter_interfone
-    input_state = GPIO.input(35)
-    if(input_state == False):
+    chaveFC = GPIO.input(35)
+    if(chaveFC == False):
         counter_mudanca=1
     else:
         counter_mudanca=0
 
 def chaveFimCursoPorta(channel):
-    global dataabertura,inicio,contapessoas, counter_IR, counter_while, counter_RFID, counter_mudanca, counter_interfone
-    input_state = GPIO.input(32)
-    if(input_state == False):
-        contapessoas=0
-        if(counter_RFID==1):
-            counter_RFID=0
-            datafecha = time.strftime("%d %b %Y %H:%M:%S")
-            fim= timeit.default_timer()
-            #enviabancodedados
-            #funcaopraenviardemadrugada
-            #print("Enviando informações para o banco de dados")
-            #bid=bancodedados.insertporta(str(uid),dataabertura,datafecha, int(fim-inicio))
-            #print(bid)
-            gravaInformacoesPorta(str(uid),dataabertura,datafecha, int(fim-inicio))
-        print ("Processo finalizado")
-    else:
-        contapessoas=1
+    global ap,dataabertura,inicio,contapessoas, counter_IR, counter_while, counter_RFID, counter_mudanca, counter_interfone
+    chaveFC = GPIO.input(35)
+    if(chaveFC == False):
+        input_state = GPIO.input(32)
+        if(input_state == False):
+            contapessoas=0
+            if(counter_RFID==1):
+                counter_RFID=0
+                datafecha = time.strftime("%d %b %Y %H:%M:%S")
+                fim= timeit.default_timer()
+                gravaInformacoesPorta(ap,dataabertura,datafecha, int(fim-inicio))
+                ap=0
+            elif(counter_interfone==1):
+                counter_interfone=0
+                datafecha = time.strftime("%d %b %Y %H:%M:%S")
+                fim= timeit.default_timer()
+                gravaInformacoesPorta(ap,dataabertura,datafecha, int(fim-inicio))
+                ap=0
+            else:
+                ap=0
+                datafecha = time.strftime("%d %b %Y %H:%M:%S")
+                fim= timeit.default_timer()
+                gravaInformacoesPorta(ap,dataabertura,datafecha, int(fim-inicio))
 
 
-def gravaInformacoesPorta(uid,dataab,dataf,x):
+            print ("Processo finalizado")
+        else:
+            contapessoas=1
+
+
+def gravaInformacoesPorta(ap,dataab,dataf,x):
     path = 'portalog.txt'
     txt_porta = open(path,'a+')
-    instr = "'{0}', '{1}', '{2}', '{3}'\n".format(uid, dataab, dataf,x)
+    instr = "{0},{1},{2},{3}\n".format(ap, dataab, dataf,x)
     txt_porta.write(instr)
 
     #salvar imagens
 
 def runPorta(run_once):
-    global dataabertura, inicio,contapessoas, counter_IR, counter_while, counter_RFID, counter_mudanca, counter_interfone
+    global ap,dataabertura, inicio,contapessoas, counter_IR, counter_while, counter_RFID, counter_mudanca, counter_interfone
     if(run_once==1):
         initializePorta()
         run_once=0
@@ -110,9 +131,11 @@ def runPorta(run_once):
                 (error, uid) = rdr2.anticoll()
                 if not error:
                     if( uid == rfid1):
-                        print("Acesso permitido - Isabel ( Ap12 ),RFID com UID: "+str(uid[0])+","+str(uid[1])+","+str(uid[2])+","+str(uid[3]))
+                        print("Acesso permitido - Isabel ( Ap 1 ),RFID com UID: "+str(uid[0])+","+str(uid[1])+","+str(uid[2])+","+str(uid[3]))
+                        ap=1
                     elif(uid == rfid2):
-                        print("Acesso permitido - Rogério ( Ap30), RFID com UID: "+str(uid[0])+","+str(uid[1])+","+str(uid[2])+","+str(uid[3]))
+                        print("Acesso permitido - Rogério ( Ap 2), RFID com UID: "+str(uid[0])+","+str(uid[1])+","+str(uid[2])+","+str(uid[3]))
+                        ap=2
                     print ("Sistema Porta")
                     counter_RFID=1
                     GPIO.output(33, 1) # aciona sistema relé por 1 segundo
@@ -122,9 +145,21 @@ def runPorta(run_once):
                     inicio = timeit.default_timer()
 
 
-            except KeyboardInterrupt:
+            except Exception, e:
+                datenow = time.strftime("%d %b %Y %H:%M:%S")
                 GPIO.cleanup()
+                error=str(e)
+                path = 'portalogerrors.txt'
+                txt_portaerror = open(path,'a+')
+                instr = "{0},{1}\n".format(error, datenow)
+                txt_portaerror.write(instr)
         try:
             continue
         except KeyboardInterrupt:
+            datenow = time.strftime("%d %b %Y %H:%M:%S")
             GPIO.cleanup()
+            error=str(e)
+            path = 'portalogerrors.txt'
+            txt_portaerror = open(path,'a+')
+            instr = "{0},{1}\n".format(error, datenow)
+            txt_portaerror.write(instr)

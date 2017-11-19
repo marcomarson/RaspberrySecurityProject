@@ -2,8 +2,8 @@ from pymongo import MongoClient
 import gridfs
 class BancoMongoDB:
     def __init__(self):
-        self.client = MongoClient("mongodb://marcomarson:naruto18@raspberry-shard-00-00-h82fm.mongodb.net:27017,raspberry-shard-00-01-h82fm.mongodb.net:27017,raspberry-shard-00-02-h82fm.mongodb.net:27017/teste?ssl=true&replicaSet=Raspberry-shard-0&authSource=admin")
-        self.db=self.client.projeto
+        self.client = MongoClient("mongodb://marcomarson:naruto18@raspberry-shard-00-00-h82fm.mongodb.net:27017,raspberry-shard-00-01-h82fm.mongodb.net:27017,raspberry-shard-00-02-h82fm.mongodb.net:27017/raspberry?ssl=true&replicaSet=Raspberry-shard-0&authSource=admin")
+        return self.client
 
     def insert(self, xT,UID, time_abertura_portao, time_fecha_portao, tempoaberto):
         self.fs=gridfs.GridFS(self.db)
