@@ -25,7 +25,7 @@ ap=0
 def initializePorta(): #__init__
     locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8') #pt_br.utf-8
     global contapessoas, counter_IR, counter_while, counter_RFID, counter_mudanca, counter_interfone
-    GPIO.add_event_detect(36, GPIO.RISING, callback=infraRedPortaPorta, bouncetime=300) # Botão Infravermelho porta
+    GPIO.add_event_detect(36, GPIO.RISING, callback=infraRedPortaPorta, bouncetime=1000) # Botão Infravermelho porta
     GPIO.add_event_detect(32, GPIO.BOTH, callback=chaveFimCursoPorta, bouncetime=300) # Botão Chave fim de curso porta
     GPIO.add_event_detect(35, GPIO.BOTH, callback=botaoMudancaPorta, bouncetime=300) # Botão Mudança
     GPIO.add_event_detect(37, GPIO.RISING, callback=interFonePorta, bouncetime=300) #Interfone
@@ -153,13 +153,4 @@ def runPorta(run_once):
                 txt_portaerror = open(path,'a+')
                 instr = "{0},{1}\n".format(error, datenow)
                 txt_portaerror.write(instr)
-        try:
-            continue
-        except KeyboardInterrupt:
-            datenow = time.strftime("%d %b %Y %H:%M:%S")
-            GPIO.cleanup()
-            error=str(e)
-            path = 'portalogerrors.txt'
-            txt_portaerror = open(path,'a+')
-            instr = "{0},{1}\n".format(error, datenow)
-            txt_portaerror.write(instr)
+        continue

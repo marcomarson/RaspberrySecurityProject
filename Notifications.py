@@ -3,7 +3,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 def sendemail(emailaddr):
-    fromaddr = "voyltgames@gmail.com"
+    fromaddr = "mam.uepg2017@gmail.com"
     toaddr = emailaddr
 
     msg = MIMEMultipart()
@@ -16,9 +16,7 @@ def sendemail(emailaddr):
 
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.starttls()
-    server.login(fromaddr, "password")
+    server.login(fromaddr, "password") # mudar para a senha original
     text = msg.as_string()
     server.sendmail(fromaddr, toaddr, text)
     server.quit()
-
-sendemail("marquinho_marson@hotmail.com")
