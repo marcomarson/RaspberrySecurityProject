@@ -1,3 +1,7 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# @author : Marco Marson
+
 from pymongo import MongoClient
 import gridfs
 class BancoMongoDB:
@@ -15,9 +19,9 @@ class BancoMongoDB:
         self.objeto= self.fs.put(xT, rfid=UID, horario_abertura= time_abertura_portao, horario_fecha = time_fecha_portao, tempo_portao_aberto=tempoaberto)
         return self.objeto
 
-    def recoverPhoto(self, from, to):
-        self.fs= gridfs.GridFS(self.db)
-        self.fs.files.find().pretty()
-        #im_stream = self.fs.get_last_version(filename)
-        im = Image.open(im_stream)
-        #return serve_pil_image(im)
+    # def recoverPhoto(self, from, to):
+    #     self.fs= gridfs.GridFS(self.db)
+    #     self.fs.files.find().pretty()
+    #     #im_stream = self.fs.get_last_version(filename)
+    #     im = Image.open(im_stream)
+    #     #return serve_pil_image(im)

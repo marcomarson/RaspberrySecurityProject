@@ -8,7 +8,6 @@ import timeit
 import RPi.GPIO as GPIO
 from BancoMongoDB import BancoMongoDB
 from pirc522 import RFID
-import pushbullet
 from Variables import *
 import locale
 import os
@@ -25,11 +24,11 @@ ap=0
 def initializePorta(): #__init__
     locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8') #pt_br.utf-8
     global contapessoas, counter_IR, counter_while, counter_RFID, counter_mudanca, counter_interfone
-    GPIO.add_event_detect(36, GPIO.RISING, callback=infraRedPortaPorta, bouncetime=1000) # Botão Infravermelho porta
-    GPIO.add_event_detect(32, GPIO.BOTH, callback=chaveFimCursoPorta, bouncetime=300) # Botão Chave fim de curso porta
-    GPIO.add_event_detect(35, GPIO.BOTH, callback=botaoMudancaPorta, bouncetime=300) # Botão Mudança
-    GPIO.add_event_detect(37, GPIO.RISING, callback=interFonePorta, bouncetime=300) #Interfone
-    GPIO.add_event_detect(40, GPIO.RISING, callback=interFonePorta, bouncetime=300) #Interfone 2
+    GPIO.add_event_detect(36, GPIO.RISING, callback=infraRedPortaPorta, bouncetime=3000) # Botão Infravermelho porta
+    GPIO.add_event_detect(32, GPIO.BOTH, callback=chaveFimCursoPorta, bouncetime=3000) # Botão Chave fim de curso porta
+    GPIO.add_event_detect(35, GPIO.BOTH, callback=botaoMudancaPorta, bouncetime=3000) # Botão Mudança
+    GPIO.add_event_detect(37, GPIO.RISING, callback=interFonePorta, bouncetime=3000) #Interfone
+    GPIO.add_event_detect(40, GPIO.RISING, callback=interFonePorta, bouncetime=3000) #Interfone 2
     #carregar tags RFID do banco
 
 def interFonePorta(channel):
@@ -52,7 +51,7 @@ def interFonePorta(channel):
     #if login_user:
 
 def CameraPorta(ap):
-    os.system('fswebcam -r 320x240 -S 3 --jpeg 50 --no-timestamp --save /home/pi/PhotosMAM/'+ap+'-%d_%m_%y-%H%M.jpg')
+    print("Photo taken")
 
 
 def infraRedPortaPorta(channel):
@@ -82,7 +81,7 @@ def chaveFimCursoPorta(channel):
     if(chaveFC == False):
         input_state = GPIO.input(32)
         if(input_state == False):
-            contapessoas=0
+            contapessoas=1
             if(counter_RFID==1):
                 counter_RFID=0
                 datafecha = time.strftime("%d %b %Y %H:%M:%S")
@@ -104,7 +103,9 @@ def chaveFimCursoPorta(channel):
 
             print ("Processo finalizado")
         else:
-            contapessoas=1
+            contapessoas=0
+            inicio = timeit.default_timer()
+            dataabertura= time.strftime("%d %b %Y %H:%M:%S")
 
 
 def gravaInformacoesPorta(ap,dataab,dataf,x):

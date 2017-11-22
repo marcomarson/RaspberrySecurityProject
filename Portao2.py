@@ -8,12 +8,11 @@ import timeit
 import RPi.GPIO as GPIO
 from BancoMongoDB import BancoMongoDB
 from pirc522 import RFID
-import pushbullet
 from Variables import *
 import locale
 from Camera import Camera
 from Notifications import sendemail
-
+dataabertura=0
 contapessoas=0
 counter_IR = 0
 counter_while=True
@@ -25,7 +24,6 @@ fim=0
 counter_email=0
 def initialize():
     locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
-    GPIO.setmode(GPIO.BOARD)
     global counter_IR, counter_RFID, counter_while, counter_mudanca, counter_interfone, contapessoas
     GPIO.add_event_detect(13, GPIO.BOTH, callback=infraRedPortao, bouncetime=300) # infravermelho
     GPIO.add_event_detect(11, GPIO.FALLING, callback=chaveFimCurso, bouncetime=300) #chave fim de curso
@@ -42,7 +40,8 @@ def interFone(channel):
     GPIO.output(31, 1) # aciona sistema relé por 1 segundo
     time.sleep(1)
     GPIO.output(31,0) # desativa sistema relé por 1 segundo
-
+    inicio=timeit.default_timer()
+    dataabertura= time.strftime("%d %b %Y %H:%M:%S")
     if(channel==37): ##procurar no banco de dados
         ap=1
     elif(channel==40):
@@ -51,21 +50,19 @@ def interFone(channel):
 
 def CameraPhoto():
     global ap
-    try:
-        camera= Camera()
-        camera.tirafoto(ap)
-    finally:
-        camera.fecha()
+
+    os.system('fswebcam -r 320x240 -S 3 --jpeg 50 --no-timestamp --save /home/pi/PhotosMAM/'+str(ap)+'-%d_%m_%y-%H%M.jpg')
 
 
 def infraRedPortao(channel):
     global ap, counter_IR, counter_RFID, counter_while, counter_mudanca, counter_interfone, contapessoas
     if(contapessoas==0):
+        contapessoas=1
         if(counter_RFID == 1):
             print ("Infravermelho detectado após RFID")
             print ("Acionar câmera")
             input_state = GPIO.input(11)
-            while(input_state == True):
+            if(input_state == True):
                 CameraPhoto()
         else:
             input_state = GPIO.input(32)
@@ -75,41 +72,44 @@ def infraRedPortao(channel):
                 print ("Infravermelho detectado pelo interfone - Entrando")
                 print ("Acionar câmera")
                 input_state = GPIO.input(11)
-                while(input_state == True):
+                if(input_state == True):
                     CameraPhoto()
 
 
 
 def botaoMudanca(channel):
+    time.sleep(0.5)
     global counter_IR, counter_RFID, counter_while, counter_mudanca, counter_interfone, contapessoas
     input_state = GPIO.input(35)
-    if(input_state == False):
+    if(GPIO.input(35)): #Rising
         counter_mudanca=1
     else:
         counter_mudanca=0
 
 def chaveFimCurso(channel):
+    time.sleep(0.5)
     global ap,counter_email,inicio,dataabertura,counter_IR, counter_RFID, counter_while, counter_mudanca, counter_interfone, contapessoas
-    input_state = GPIO.input(11)
-    if(input_state == False):
-        contapessoas=0
+    if(GPIO.input(11)):
+        contapessoas=1
         fim= timeit.default_timer()
         datafecha = time.strftime("%d %b %Y %H:%M:%S")
         if(counter_RFID==1):
             counter_RFID=0
+        if(inicio==0):
+            fim=0
         gravaInformacoesPorta(ap,dataabertura,datafecha, int(fim-inicio))
         print ("Processo finalizado")
     else:
         inicio=timeit.default_timer()
         dataabertura= time.strftime("%d %b %Y %H:%M:%S")
-        contapessoas=1
+        contapessoas=0
         counter_mudanca=0
         counter_email=0
 
 def gravaInformacoesPortao(ap,dataab,dataf,x):
     path = 'portaolog.txt'
     txt_porta = open(path,'a+')
-    instr = "{0},{1},{2},{3}\n".format(ap, dataab, dataf,x)
+    instr = "{0},{1},{2},{3},\n".format(ap, dataab, dataf,x)
     txt_porta.write(instr)
     #salvar imagens
 def run(run_once_portao):
